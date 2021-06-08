@@ -55,7 +55,7 @@ func TestTransport_DebugLoggerFunc(t *testing.T) {
 		fmt.Fprint(sb, args...)
 	}
 
-	c.client.Transport = transport.NewDebugTransport(transport.DebugLoggerFunc(stringLogger), c.client.Transport)
+	c.client.Transport = transport.NewDebugTransport(stringLogger, c.client.Transport)
 
 	err := c.HealthCheck(context.Background())
 	if !errors.Is(err, ErrHealthCheck) {

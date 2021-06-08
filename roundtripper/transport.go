@@ -5,28 +5,20 @@ import (
 	"net/http/httputil"
 )
 
-type DebugLogger interface {
-	Debug(args ...interface{})
-}
-
-type DebugLoggerFunc func(args ...interface{})
-
-func (fn DebugLoggerFunc) Debug(args ...interface{}) {
-	fn(args...)
-}
+type Logger func(args ...interface{})
 
 type DebugTransport struct {
 	rt     http.RoundTripper
-	logger DebugLogger
+	logger Logger
 }
 
-func NewDebugTransport(logger DebugLogger, rt http.RoundTripper) *DebugTransport {
+func NewDebugTransport(logger Logger, rt http.RoundTripper) *DebugTransport {
 	if rt == nil {
 		rt = http.DefaultTransport
 	}
 
 	if logger == nil {
-		logger = DebugLoggerFunc(func(args ...interface{}) {})
+		logger = func(args ...interface{}) {}
 	}
 
 	return &DebugTransport{
@@ -41,7 +33,7 @@ func (d *DebugTransport) RoundTrip(request *http.Request) (*http.Response, error
 		return nil, err
 	}
 
-	d.logger.Debug(string(requestBody))
+	d.logger(string(requestBody))
 
 	resp, err := d.rt.RoundTrip(request)
 	if err != nil {
@@ -53,7 +45,7 @@ func (d *DebugTransport) RoundTrip(request *http.Request) (*http.Response, error
 		return nil, err
 	}
 
-	d.logger.Debug(string(respBody))
+	d.logger(string(respBody))
 
 	return resp, nil
 }
