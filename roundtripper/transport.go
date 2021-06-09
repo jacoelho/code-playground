@@ -12,19 +12,36 @@ type DebugTransport struct {
 	logger Logger
 }
 
-func NewDebugTransport(logger Logger, rt http.RoundTripper) *DebugTransport {
-	if rt == nil {
-		rt = http.DefaultTransport
+type DebugTransportOption func(*DebugTransport)
+
+func WithLogger(loggor Logger) DebugTransportOption {
+	return func(dt *DebugTransport) {
+		dt.logger = loggor
+	}
+}
+
+func WithRoundTripper(rt http.RoundTripper) DebugTransportOption {
+	return func(dt *DebugTransport) {
+		dt.rt = rt
+	}
+}
+
+func NewDebugTransport(opts ...DebugTransportOption) *DebugTransport {
+	dt := new(DebugTransport)
+
+	for _, opt := range opts {
+		opt(dt)
 	}
 
-	if logger == nil {
-		logger = func(args ...interface{}) {}
+	if dt.rt == nil {
+		dt.rt = http.DefaultTransport
 	}
 
-	return &DebugTransport{
-		rt:     rt,
-		logger: logger,
+	if dt.logger == nil {
+		dt.logger = func(args ...interface{}) {}
 	}
+
+	return dt
 }
 
 func (d *DebugTransport) RoundTrip(request *http.Request) (*http.Response, error) {
