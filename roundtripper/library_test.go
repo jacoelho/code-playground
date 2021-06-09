@@ -55,7 +55,7 @@ func TestTransport_DebugLoggerFunc(t *testing.T) {
 		fmt.Fprint(sb, args...)
 	}
 
-	c.client.Transport = transport.NewDebugTransport(stringLogger, c.client.Transport)
+	c.client.Transport = transport.NewDebugTransport(transport.WithLogger(stringLogger), transport.WithRoundTripper(c.client.Transport))
 
 	err := c.HealthCheck(context.Background())
 	if !errors.Is(err, ErrHealthCheck) {
@@ -63,6 +63,7 @@ func TestTransport_DebugLoggerFunc(t *testing.T) {
 	}
 
 	got := sb.String()
+
 	if !strings.Contains(got, `GET / HTTP/1.1`) {
 		t.Errorf("expected http request, got %s", got)
 	}
@@ -83,7 +84,7 @@ func TestTransport_DebugLoggerNotSet(t *testing.T) {
 		url:    ts.URL,
 	}
 
-	c.client.Transport = transport.NewDebugTransport(nil, c.client.Transport)
+	c.client.Transport = transport.NewDebugTransport()
 
 	err := c.HealthCheck(context.Background())
 	if !errors.Is(err, ErrHealthCheck) {
