@@ -2,6 +2,7 @@ package leaderkey
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/hashicorp/consul/api"
@@ -157,11 +158,17 @@ loop:
 		}
 	}
 
+	// ensure unlock
+	if err := c.lock.Unlock(); err != nil && !errors.Is(err, api.ErrLockNotHeld) {
+		return err
+	}
+
 	close(c.done)
 
 	return nil
 }
 
 func (c *Member) Stop() {
+
 	close(c.done)
 }
